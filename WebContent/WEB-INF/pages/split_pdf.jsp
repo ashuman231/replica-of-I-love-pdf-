@@ -5,15 +5,7 @@
 <head>
 <link href="dist/css/app.b49cf26.css" rel="stylesheet"></head>
 <body class="toolpage  lang-en-US">
-<script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','../www.google-analytics.com/analytics.js','ga');
-            ga('create', 'UA-12651114-1 ', 'auto');
-    
-            ga('send', 'pageview');
-    </script><div class="header">
+<div class="header">
     <div class="header__main">
         <div class="brand">
     <div class="brand__logo">
@@ -37,7 +29,7 @@
         <div id="uploader" class="uploader">
 	<form action="/webapp/splitter" method="post" enctype="multipart/form-data">
   <input class="uploader__btn tooltip--left" type="file" name="userfile" required/><strong>${message}</strong><br><br>
-  <strong>If your pdf is protected then enter password here.</strong> <br>
+  <strong>*If your pdf is protected then enter password here(optional).</strong> <br>
    <input class="uploader__btn tooltip--left" type="password" name="c" placeholder="Enter your password" /> <br><br>
   <button class="uploader__btn tooltip--left"  type="submit">Submit</button>
 </form>
@@ -50,6 +42,5 @@
     <div class="footer__copy">
        <strong>DEVELOP BY ASHUTOSH!</strong>  </div>
 </div>      
-
-    <script src="dist/js/app.b49cf26.js" async="async"></script></body>
+</body>
 </html>

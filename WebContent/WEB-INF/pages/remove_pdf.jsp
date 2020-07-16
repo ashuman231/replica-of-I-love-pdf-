@@ -44,16 +44,15 @@
                 <input id="pwd2" class="input option" type="text" name="b" tabindex="2"  Required>
         </div>
 		<br>
-		  <strong>If your pdf is protected then enter password here.</strong> <br>
+		  <strong>*If your pdf is protected then enter password here(optional).</strong> <br>
    <input class="uploader__btn tooltip--left" type="password" name="c" placeholder="Enter your password" /> <br><br>
 		<div class="uploader">
-                 <input type="submit" class="uploader__btn tooltip--left"value="select"><span></input>
+                 <input type="submit" class="uploader__btn tooltip--left"value="select"></input>
             </div>
 		
 		 </form>
     </div>
     </div>
-</div>
  <div class="footer">
     <div class="footer__copy">
        <strong>DEVELOP BY ASHUTOSH!</strong>  </div>

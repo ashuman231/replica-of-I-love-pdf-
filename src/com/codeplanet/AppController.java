@@ -284,8 +284,8 @@ public class AppController {
 		 for(String file:filePath)
 			{   deleteFile(new File(file));	
 			}
+		 deleteFile(new File("E:/files/user"+session.getId().substring(0,5)+""));
 		return null;
-		
 	}
 	@PostMapping("/remove")
 	public String removePage(HttpServletRequest req,UserFile user,HttpServletResponse res, HttpSession session) throws IOException
@@ -363,7 +363,7 @@ public class AppController {
 			return "pdf_to_image";
 		}
 		PDFRenderer pr = new PDFRenderer(pd);
-		BufferedImage img = pr.renderImage(pageNumber-1);  //  argument is index of page in pdf
+		BufferedImage img = pr.renderImage(pageNumber);  //  argument is index of page in pdf
 		File f1 = new File("E:/files/user"+session.getId().substring(0,5)+"/image.jpg");
 		f1.createNewFile();
 		ImageIO.write(img,"JPEG",f1 );
