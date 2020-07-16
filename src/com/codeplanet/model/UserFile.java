@@ -8,6 +8,13 @@ public class UserFile {
 	MultipartFile[] userfile;
 	String a;
 	String b;
+	String c;
+	public String getC() {
+		return c;
+	}
+	public void setC(String c) {
+		this.c = c;
+	}
 	public String getA() {
 		return a;
 	}

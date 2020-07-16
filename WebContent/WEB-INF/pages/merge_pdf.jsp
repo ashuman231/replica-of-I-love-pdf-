@@ -38,7 +38,7 @@
         <div id="uploader" class="uploader">
 	<form action="/webapp/merge" method="post" enctype="multipart/form-data">
   <input class="uploader__btn tooltip--left" type="file" name="userfile" multiple required/>
-  <br><br>
+  <br><br> <strong>    ${message}</strong><br><br>
   <button class="uploader__btn tooltip--left"  type="submit">Submit</button>
 </form>
 </div>             

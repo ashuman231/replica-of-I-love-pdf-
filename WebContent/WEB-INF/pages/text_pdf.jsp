@@ -36,7 +36,9 @@
         </div>
         <div id="uploader" class="uploader">
 	<form action="/webapp/extract" method="post" enctype="multipart/form-data">
-  <input class="uploader__btn tooltip--left" type="file" name="userfile" required/><br><br>
+  <input class="uploader__btn tooltip--left" type="file" name="userfile" required/><br><br><strong>${message}</strong><br><br>
+    <strong>If your pdf is protected then enter password here.</strong> <br>
+   <input class="uploader__btn tooltip--left" type="password" name="c" placeholder="Enter your password" /> <br><br>
   <button class="uploader__btn tooltip--left"  type="submit">Submit</button>
 </form>
 </div>             

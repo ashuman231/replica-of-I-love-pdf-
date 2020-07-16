@@ -29,8 +29,9 @@
     (Insert Range that you wanna delete)
     </div>
     <div class="option__panel__content">
+     <strong>${message}</strong><br><br>
 		 <form action="/webapp/remove" method="post" enctype="multipart/form-data">
-		 <input class="uploader__btn tooltip--left" type="file" name="userfile" required/><br>
+		 <input class="uploader__btn tooltip--left" type="file" name="userfile" required/>
 		<p>From</p>
         <div class="form__group form__group--btn form__group--btn-lg">
                 <input id="pwd" class="input option" type="text" name="a" tabindex="1" placeholder="start from 1" Required>
@@ -43,6 +44,8 @@
                 <input id="pwd2" class="input option" type="text" name="b" tabindex="2"  Required>
         </div>
 		<br>
+		  <strong>If your pdf is protected then enter password here.</strong> <br>
+   <input class="uploader__btn tooltip--left" type="password" name="c" placeholder="Enter your password" /> <br><br>
 		<div class="uploader">
                  <input type="submit" class="uploader__btn tooltip--left"value="select"><span></input>
             </div>

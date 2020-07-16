@@ -58,7 +58,6 @@ import com.codeplanet.service.HomeService;
 
 @Controller
 public class AppController {
-	static int i=0;
 	@Autowired
 	HomeService homeService;
 	@RequestMapping(value="/register" )
@@ -88,19 +87,99 @@ public class AppController {
 	   return "index";
 	   
 	}  
+	private String getMImeType(String filepath) {
+        String file =filepath.toLowerCase();
+        if(file.endsWith(".jpg")==true||file.endsWith(".jpeg")==true||file.endsWith(".png")==true)
+        	return "image/jpeg";
+        else if(file.endsWith(".pdf")==true)
+        	return "application/pdf";
+        else if(file.endsWith(".zip")==true)
+        	return "application/zip";
+        else 
+        	return "other";
+	}
+	private ArrayList<String> uploadFileOnServer(UserFile user,HttpSession session) throws IOException {
+		String sessionId = session.getId();
+		sessionId = sessionId.substring(0, 5);
+		String rootdirectory = "E:/files/user"+sessionId;   // where we want to save!
+		File directory = new File(rootdirectory);
+		directory.mkdirs();
+		MultipartFile[] filedata = user.getUserfile();   //all the media data saved in multipart file!
+		ArrayList<String>array = new  ArrayList<String>();
+		for(MultipartFile filedata1:filedata)
+		{
+		String filename = filedata1.getOriginalFilename();
+		String filepath=null;
+		if(getMImeType(filename).equals("application/pdf")==false)
+			throw new RuntimeException();
+		if(filename!=null&&filename.length()>0)
+		{  
+			filepath =directory.getCanonicalPath()+File.separator+filename;
+			BufferedOutputStream bf = new BufferedOutputStream(new FileOutputStream(filepath));
+			bf.write(filedata1.getBytes());
+			bf.flush();
+			bf.close();
+		
+		}
+		array.add(filepath);
+		}
+		return array;
+	}
+	// to download file from any server location!
+	@RequestMapping(value="/download")
+	public String download(HttpServletRequest req,HttpServletResponse res, HttpSession session) throws IOException 
+	{   
+		String mimetype  = null;
+		String filepath= req.getParameter("filepath");
+		try {
+		mimetype = getMImeType(filepath);
+		}
+		catch(Exception e) {
+			return "index";
+		}
+		res.setContentType(mimetype);
+		File f = new File(filepath);
+		res.setHeader("Content-Disposition", "filename=" + filepath);  //uses for set name of download file & download the file without interruted!
+		FileInputStream fis = new FileInputStream(f);
+		ServletOutputStream sos = res.getOutputStream();
+		//byte[] b = new  byte[(int)f.length()];
+		/*fis.read(b);
+		sos.write(b);
+		sos.flush();
+		fis.close();
+		sos.close();*/
+		    IOUtils.copy(fis,sos);
+			fis.close();
+			sos.close();
+			System.out.println("coloslredfrnd");
+			deleteFile(new File("E:/files/user"+session.getId().substring(0,5)+""));
+			return "index";
+	}
+	private void deleteFile(File f) throws IOException
+    {
+    	System.out.println(f);
+    	if(f.isDirectory()==true&&f.delete()==false) {
+ 	    for (File subFile : f.listFiles())
+ 	    subFile.delete();
+ 	    f.delete();
+    	}
+    	else
+    	f.delete();	
+    }
 	//// for merger pdf file!
 	@PostMapping(value="/merge")
-	public String merger(HttpServletRequest req,UserFile user) throws IOException
+	public String merger(HttpServletRequest req,UserFile user,HttpSession session) throws IOException
 	{   ArrayList<String> filepath;
 		try
-	    { filepath = uploadFileOnServer(user);
+	    { filepath = uploadFileOnServer(user, session);
 	    }
 		catch(Exception e)
 		{
-			return "index";
+			return "merge_pdf";
 		}
+		String sessionId = session.getId().substring(0,5);
 		PDFMergerUtility pdf= new PDFMergerUtility();   
-	    File f1 = new File("E:/files/merge/merge"+i+++".pdf");
+	    File f1 = new File("E:/files/user"+sessionId+"/merge.pdf");
 	    f1.createNewFile();
 	    pdf.setDestinationFileName(f1.getCanonicalPath());
 		for(String f:filepath) {
@@ -108,6 +187,9 @@ public class AppController {
 		System.out.println("pdf merge");
 		}
 		pdf.mergeDocuments(null);
+		for(String file:filepath)
+		{   deleteFile(new File(file));	
+		}
 		req.setAttribute("filepath",f1.getCanonicalPath());
 		return "download";
 	}
@@ -120,106 +202,47 @@ public class AppController {
 		return "index";
 		
 	} 
-*/    
-	////   for upload on server pdf file!
-	private ArrayList<String> uploadFileOnServer(UserFile user) throws IOException {
-		String rootdirectory = "E:/files/merge";    // where we want to save!
-		File directory = new File(rootdirectory);
-		directory.mkdirs();
-		MultipartFile[] filedata = user.getUserfile();   //all the media data saved in multipart file!
-		ArrayList<String>array = new  ArrayList<String>();
-		for(MultipartFile filedata1:filedata)
-		{
-		String filename = filedata1.getOriginalFilename();
-		String filepath=null;
-		if(filename!=null&&filename.length()>0)
-		{   try {
-			filepath =directory.getCanonicalPath()+File.separator+filename;
-			BufferedOutputStream bf = new BufferedOutputStream(new FileOutputStream(filepath));
-			bf.write(filedata1.getBytes());
-			bf.flush();
-			bf.close();
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
-		}
-		array.add(filepath);
-		}
-		return array;
-	} 
-	// to download file from any server location!
-	@RequestMapping(value="/download")
-	public String download(HttpServletRequest req,HttpServletResponse res) throws IOException 
-	{   
-		String mimetype  = null;
-	//	String filepath = "E:/files/merge/1560851333683.png";
-		String filepath= req.getParameter("filepath");
-		try {
-		mimetype = getMImeType(filepath);
-		}
-		catch(Exception e) {
-			return "index";
-		}
-		res.setContentType(mimetype);
-		File f = new File(filepath);
-		res.setHeader("Content-Disposition", "attachment; filename=" + filepath);  //uses for set name of download file & download the file without interruted!
-		FileInputStream fis = new FileInputStream(f);
-		ServletOutputStream sos = res.getOutputStream();
-		//byte[] b = new  byte[(int)f.length()];
-		/*fis.read(b);
-		sos.write(b);
-		sos.flush();
-		fis.close();
-		sos.close();*/
-		 IOUtils.copy(fis,sos);
-			fis.close();
-			sos.close();
-			return null;
-	}
-	//// for receive mime type of filepath/any file
-	private String getMImeType(String filepath) {
-        String file =filepath.toLowerCase();
-        if(file.endsWith(".jpg")==true||file.endsWith(".jpeg")==true||file.endsWith(".png")==true)
-        	return "image/jpeg";
-        else if(file.endsWith(".pdf")==true)
-        	return "application/pdf";
-        else 
-        	return "application/pdf";
-	}
+*/
 	@PostMapping("/splitter")
-    public String splitter(HttpServletResponse res,UserFile user,HttpSession session) throws IOException
+    public String splitter(HttpServletResponse res,HttpServletRequest req,UserFile user,HttpSession session) throws IOException
     {   ArrayList<String> filePath;
 	try
-    { filePath = uploadFileOnServer(user);
+    { filePath = uploadFileOnServer(user, session);
     }
 	catch(Exception e)
-	{
-		return "index";
+	{   req.setAttribute("message","file format is not up to date.");
+		return "split_pdf";
 	}
 	    Iterator<String> it1 = filePath.iterator();
 	    String str = it1.next();
 		File f = new File(str);
-		PDDocument pd = PDDocument.load(f);   // static method to do this!
+		String password = user.getC();
+		PDDocument pd = PDDocument.load(f,password);   // static method to do this!
 		Splitter sp = new Splitter();
 		List<PDDocument> pd1 = sp.split(pd);
 		Iterator<PDDocument> it = pd1.listIterator();
 		int i=0;
 		List<String> filepaths = new ArrayList<String>();
+		File folder = new File("e:/files/user"+session.getId().substring(0,5)+"/split"); // To create split folder
+		folder.mkdirs();
 		while(it.hasNext())
 		{   i++;
 			PDDocument pd2  = it.next();
-			String s = "e:/files/split/"+i+".pdf";
+			String s = "e:/files/user"+session.getId().substring(0,5)+"/split/"+i+".pdf";
 			pd2.save(s);
 			filepaths.add(s);
 		}
-		zipFiles(filepaths,res);
 		pd.close();
-		return "index";
+		 String zipFileName = zipFiles(filepaths, session);
+	    req.setAttribute("filepath",zipFileName);	
+	    
+	    for(String file:filePath)
+		{   deleteFile(new File(file));	
+		}
+		return "download";
     }
-	private void zipFiles(List<String> filepaths, HttpServletResponse res) throws IOException {
-		String zipFileName = "E:/files/splitter.zip";
+	private String zipFiles(List<String> filepaths,HttpSession session) throws IOException {
+		String zipFileName = "E:/files/user"+session.getId().substring(0,5)+"/splitter.zip";
 		FileOutputStream fos = new FileOutputStream(zipFileName);
 	    ZipOutputStream zos = new ZipOutputStream(fos);  // present in util package!
 	    for(String s: filepaths)
@@ -230,108 +253,137 @@ public class AppController {
 	    	zos.closeEntry(); // current entry will close at this type,after this new entry will be created!
 	    }
 	    zos.close();
-	    // for downloading code
-	   // String mimetype  = null;
-		//	String filepath = "E:/files/merge/1560851333683.png";
-			String filepath= "E:/files/splitter.zip";
-		//	mimetype = getMImeType(filepath);
-			res.setContentType("application/zip");
-			File f = new File(filepath);
-			res.setHeader("Content-Disposition", "attachment; filename=" + filepath);  //uses for set name of download file!
-			FileInputStream fis = new FileInputStream(f);
-			ServletOutputStream sos = res.getOutputStream();
-			//byte[] b = new  byte[(int)f.length()];
-			/*fis.read(b);
-			sos.write(b);
-			sos.flush();
-			fis.close();
-			sos.close();*/
-			 IOUtils.copy(fis,sos);
-			 fis.close();
-			 sos.close();
-			 
-			 
+	    fos.close();
+	    // To delete split folder
+	   deleteFile(new File("E:/files/user"+session.getId().substring(0,5)+"/split"));
+	   return zipFileName;
+ 
 	}
+	   
 	@PostMapping("/extract")
-	public String extract(HttpServletRequest req,UserFile user,HttpServletResponse res ) throws IOException
+	public String extract(HttpServletRequest req,UserFile user,HttpServletResponse res, HttpSession session ) throws IOException
 	{  ArrayList<String> filePath;
 	try
-    { filePath = uploadFileOnServer(user);
+    { filePath = uploadFileOnServer(user, session);
     }
 	catch(Exception e)
 	{
-		return "index";
+		req.setAttribute("message","file format is not up to date.");
+		return "text_pdf";
 	}
         Iterator<String> it1 = filePath.iterator();
     String str = it1.next();
 	File f = new File(str);
-		PDDocument pd = PDDocument.load(f);
+	String password = user.getC();
+	PDDocument pd = PDDocument.load(f,password); 
 		PDFTextStripper text = new PDFTextStripper();
 		String s  = text.getText(pd);       // just like a read method
 		PrintWriter pw = res.getWriter();
 		pw.write(s);
+		pd.close();
+		 for(String file:filePath)
+			{   deleteFile(new File(file));	
+			}
 		return null;
 		
 	}
 	@PostMapping("/remove")
-	public String removePage(HttpServletRequest req,UserFile user,HttpServletResponse res) throws IOException
+	public String removePage(HttpServletRequest req,UserFile user,HttpServletResponse res, HttpSession session) throws IOException
 	{
 		 ArrayList<String> filePath;
+		
 			try
-		    { filePath = uploadFileOnServer(user);
+		    { filePath = uploadFileOnServer(user,session);
 		    }
 			catch(Exception e)
-			{
-				return "index";
+			{req.setAttribute("message","Warning:-------file format is not up to date.");
+			return "remove_pdf";
 			}
     Iterator<String> it1 = filePath.iterator();
-String str = it1.next();
-File f = new File(str);
-        int start = Integer.parseInt(user.getA())-1;
-        int end = Integer.parseInt(user.getB())-1;
-		PDDocument pd = PDDocument.load(f);
+         String str = it1.next();
+         File f = new File(str);
+        String password = user.getC();
+		PDDocument pd = PDDocument.load(f,password);
 		int total = pd.getNumberOfPages();
-		System.out.println(total);
-		for(int i=start;i<=end;i++)
-		{
-			pd.removePage(start); 
+		int from,to;
+		// if page number is not valid!
+		try
+		{    from = Integer.parseInt(user.getA())-1;
+             to  = Integer.parseInt(user.getB())-1;
+			if(from<0||to<0||from>=total||to>=total)
+				throw new RuntimeException();
 		}
-		pd.save("E:/files/merge/remove.pdf");
+		catch(Exception e)
+		{  
+			req.setAttribute("message","Warning:-------something went wrong with range.");
+			return "remove_pdf";
+		}
+		System.out.println(total);
+		for(int i=from;i<=to;i++)
+		{
+			pd.removePage(from); 
+		}
+		pd.save("E:/files/user"+session.getId().substring(0,5)+"/remove.pdf");
 		pd.close();
-		req.setAttribute("filepath","E:/files/merge/remove.pdf");
+		 for(String file:filePath)
+			{   deleteFile(new File(file));	
+			}
+		req.setAttribute("filepath","E:/files/user"+session.getId().substring(0,5)+"/remove.pdf");
 		return "download";
 	}
 	@PostMapping("/pdfToImage")
-	public String pdfToImage(HttpServletRequest req,UserFile user,HttpServletResponse res) throws IOException
+	public String pdfToImage(HttpServletRequest req,UserFile user,HttpServletResponse res, HttpSession session) throws IOException
 	{  ArrayList<String> filePath;
 	try
-    { filePath = uploadFileOnServer(user);
+    { 
+		filePath = uploadFileOnServer(user,session);
+            // if someone upload string as a number!
     }
 	catch(Exception e)
-	{
-		return "index";
+	{req.setAttribute("message","Warning:-----------pdf format is not valid.");
+	return "pdf_to_image";
 	}
         Iterator<String> it1 = filePath.iterator();
       String str = it1.next();
         File f = new File(str);
-		PDDocument pd = PDDocument.load(f);
+     
+        String password = user.getC();
+		PDDocument pd = PDDocument.load(f,password);
+		int total = pd.getNumberOfPages();
+		int pageNumber;
+		// To check page number of pdf!
+		try
+		{   pageNumber  = Integer.parseInt(user.getA())-1;
+			if(pageNumber<0||pageNumber>=total)
+				throw new RuntimeException();
+		}
+		catch(Throwable e)
+		{
+			req.setAttribute("message","Warning:---------Something went wrong with page number.");
+			return "pdf_to_image";
+		}
 		PDFRenderer pr = new PDFRenderer(pd);
-		BufferedImage img = pr.renderImage(0);  //  argument is index of page in pdf
-		File f1 = new File("E:/files/merge/image.jpg");
+		BufferedImage img = pr.renderImage(pageNumber-1);  //  argument is index of page in pdf
+		File f1 = new File("E:/files/user"+session.getId().substring(0,5)+"/image.jpg");
 		f1.createNewFile();
 		ImageIO.write(img,"JPEG",f1 );
+		 for(String file:filePath)
+			{   deleteFile(new File(file));	
+			}
 		req.setAttribute("filepath",f1.getCanonicalPath());
+		pd.close();
 		return "download";
 	}
 	@PostMapping("/protect")
-	public String protect(HttpServletRequest req,UserFile user,HttpServletResponse res) throws IOException
+	public String protect(HttpServletRequest req,UserFile user,HttpServletResponse res, HttpSession session) throws IOException
 	{    ArrayList<String> filePath;
 	try
-    { filePath = uploadFileOnServer(user);
+    { filePath = uploadFileOnServer(user,session);
     }
 	catch(Exception e)
 	{
-		return "index";
+		req.setAttribute("message","file format is not up to date.");
+		return "protect_pdf";
 	}
          Iterator<String> it1 = filePath.iterator();
          String str = it1.next();
@@ -345,20 +397,23 @@ File f = new File(str);
 		policy.setEncryptionKeyLength(128);
 		policy.setPermissions(ap);
 	    	pd.protect(policy);
-	    	pd.save("E:/files/merge/ss5.pdf");
+	    	pd.save("E:/files/user"+session.getId().substring(0,5)+"/protected.pdf");
 	    	pd.close();
-	    	req.setAttribute("filepath","E:/files/merge/ss5.pdf");
+	    	 for(String file:filePath)
+	 		{   deleteFile(new File(file));	
+	 		}
+	    	req.setAttribute("filepath","E:/files/user"+session.getId().substring(0,5)+"/protected.pdf");
 			return "download";
      }
 	@PostMapping("/unlock")
-	public String unlock(UserFile user,HttpServletResponse res,HttpServletRequest req) throws IOException
+	public String unlock(UserFile user,HttpServletResponse res,HttpServletRequest req, HttpSession session) throws IOException
 	{   ArrayList<String> filePath;
 	try
-    { filePath = uploadFileOnServer(user);
+    { filePath = uploadFileOnServer(user,session);
     }
 	catch(Exception e)
-	{
-		return "index";
+	{req.setAttribute("message","file format is not up to date.");
+	return "unlock_pdf";
 	}
     Iterator<String> it1 = filePath.iterator();
     String str = it1.next();
@@ -368,8 +423,12 @@ File f = new File(str);
 		File f = new File(str);
 		PDDocument pd = PDDocument.load(f,pwd);
 	   pd.setAllSecurityToBeRemoved(true);
-	   pd.save("E:/files/merge/unlock23.pdf");
-	   req.setAttribute("filepath","E:/files/merge/unlock23.pdf");
+	   pd.save("E:/files/user"+session.getId().substring(0,5)+"/unlock.pdf");
+	   pd.close();
+	   for(String file:filePath)
+		{   deleteFile(new File(file));	
+		}
+	   req.setAttribute("filepath","E:/files/user"+session.getId().substring(0,5)+"/unlock.pdf");
    
 		return "download";
 	}
