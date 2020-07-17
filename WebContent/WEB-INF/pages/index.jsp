@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
+    pageEncoding="ISO-8859-1" trimDirectiveWhitespaces="true" %>
     <!DOCTYPE html>
 <html lang="en">
 <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
@@ -61,6 +61,7 @@
             </a>
         </div>
        <br>
+       <br/>
         <div class="tools__item">
             <a href="/webapp/removePage" title="Rotate PDF">
                 <div class="tools__item__icon">

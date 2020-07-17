@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
+    pageEncoding="ISO-8859-1" trimDirectiveWhitespaces="true" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,13 +30,12 @@
         <div id="uploader" class="uploader">
 	<form action="/webapp/merge" method="post" enctype="multipart/form-data">
   <input class="uploader__btn tooltip--left" type="file" name="userfile" multiple required/>
-  <br><br> <strong>    ${message}</strong><br><br>
+  <br><br> <strong> ${message}</strong><br><br>
   <button class="uploader__btn tooltip--left"  type="submit">Submit</button>
 </form>
 </div>             
 </div>
 </div>
-
 </div>
             <div class="footer">
     <div class="footer__copy">

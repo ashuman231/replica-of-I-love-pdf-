@@ -126,7 +126,7 @@ public class AppController {
 		return array;
 	}
 	// to download file from any server location!
-	@RequestMapping(value="/download")
+	@PostMapping(value="/download")
 	public String download(HttpServletRequest req,HttpServletResponse res, HttpSession session) throws IOException 
 	{   
 		String mimetype  = null;
@@ -139,21 +139,27 @@ public class AppController {
 		}
 		res.setContentType(mimetype);
 		File f = new File(filepath);
-		res.setHeader("Content-Disposition", "filename=" + filepath);  //uses for set name of download file & download the file without interruted!
+		if(f.exists()==false)
+		{
+			return "general_error";
+		}
+		res.setHeader("Content-Disposition"," attachment;filename=" + filepath);  //uses for set name of download file & download the file without interruted!
 		FileInputStream fis = new FileInputStream(f);
 		ServletOutputStream sos = res.getOutputStream();
+		IOUtils.copy(fis,sos);
 		//byte[] b = new  byte[(int)f.length()];
 		/*fis.read(b);
 		sos.write(b);
 		sos.flush();
 		fis.close();
-		sos.close();*/
-		    IOUtils.copy(fis,sos);
+		sos.close();*/  
 			fis.close();
 			sos.close();
 			System.out.println("coloslredfrnd");
 			deleteFile(new File("E:/files/user"+session.getId().substring(0,5)+""));
-			return "index";
+			// it should always return null otherwise getOutputStream already called exception will come in picture 
+			// otherwise use #include or #forward 
+			return null;
 	}
 	private void deleteFile(File f) throws IOException
     {
@@ -217,7 +223,20 @@ public class AppController {
 	    String str = it1.next();
 		File f = new File(str);
 		String password = user.getC();
-		PDDocument pd = PDDocument.load(f,password);   // static method to do this!
+		PDDocument pd =null;
+		try {
+		 pd = PDDocument.load(f,password);  
+		}
+		catch(Throwable t)
+		{
+			
+			 for(String file:filePath)
+				{   deleteFile(new File(file));	
+				}
+			req.setAttribute("message","password Is Not Correct! Try Again.");
+			return "split_pdf";
+		}
+		// static method to do this!
 		Splitter sp = new Splitter();
 		List<PDDocument> pd1 = sp.split(pd);
 		Iterator<PDDocument> it = pd1.listIterator();
@@ -275,7 +294,18 @@ public class AppController {
     String str = it1.next();
 	File f = new File(str);
 	String password = user.getC();
-	PDDocument pd = PDDocument.load(f,password); 
+	PDDocument pd =null;
+	try {
+	 pd = PDDocument.load(f,password);  
+	}
+	catch(Throwable t)
+	{   
+		for(String file:filePath)
+	    {   deleteFile(new File(file));	
+	    }
+		req.setAttribute("message","password Is Not Correct! Try Again.");
+		return "text_pdf";
+	}
 		PDFTextStripper text = new PDFTextStripper();
 		String s  = text.getText(pd);       // just like a read method
 		PrintWriter pw = res.getWriter();
@@ -303,7 +333,19 @@ public class AppController {
          String str = it1.next();
          File f = new File(str);
         String password = user.getC();
-		PDDocument pd = PDDocument.load(f,password);
+        PDDocument pd =null;
+		try {
+		 pd = PDDocument.load(f,password);  
+		}
+		catch(Throwable t)
+		{   
+			
+			 for(String file:filePath)
+				{   deleteFile(new File(file));	
+				}
+			req.setAttribute("message","password Is Not Correct! Try Again.");
+			return "remove_pdf";
+		}
 		int total = pd.getNumberOfPages();
 		int from,to;
 		// if page number is not valid!
@@ -348,7 +390,18 @@ public class AppController {
         File f = new File(str);
      
         String password = user.getC();
-		PDDocument pd = PDDocument.load(f,password);
+        PDDocument pd =null;
+		try {
+		 pd = PDDocument.load(f,password);  
+		}
+		catch(Throwable t)
+		{
+			 for(String file:filePath)
+				{   deleteFile(new File(file));	
+				}
+			req.setAttribute("message","password Is Not Correct! Try Again.");
+			return "pdf_to_image";
+		}
 		int total = pd.getNumberOfPages();
 		int pageNumber;
 		// To check page number of pdf!
@@ -389,11 +442,23 @@ public class AppController {
          String str = it1.next();
          
          
-         String pwd = user.getA();
+         String password = user.getA();
 		File f = new File(str);
-		PDDocument pd = PDDocument.load(f);
+		PDDocument pd =null;
+		try {
+		 pd = PDDocument.load(f,password);  
+		}
+		catch(Throwable t)
+		{    
+			
+			 for(String file:filePath)
+				{   deleteFile(new File(file));	
+				}
+			req.setAttribute("message","password Is Not Correct! Try Again.");
+			return "protect_pdf";
+		}
 		AccessPermission ap = new AccessPermission() ;
-		StandardProtectionPolicy policy = new StandardProtectionPolicy("code????",pwd, ap);  // always use special character!
+		StandardProtectionPolicy policy = new StandardProtectionPolicy("code????",password, ap);  // always use special character!
 		policy.setEncryptionKeyLength(128);
 		policy.setPermissions(ap);
 	    	pd.protect(policy);
@@ -418,10 +483,21 @@ public class AppController {
     Iterator<String> it1 = filePath.iterator();
     String str = it1.next();
        str = str.trim();
-       String pwd = user.getA();
-       pwd = pwd.trim();
+       String password = user.getA();
 		File f = new File(str);
-		PDDocument pd = PDDocument.load(f,pwd);
+		PDDocument pd =null;
+		try {
+		 pd = PDDocument.load(f,password);  
+		}
+		catch(Throwable t)
+		{
+			
+			 for(String file:filePath)
+				{   deleteFile(new File(file));	
+				}
+			req.setAttribute("message","password Is Not Correct! Try Again.");
+			return "unlock_pdf";
+		}
 	   pd.setAllSecurityToBeRemoved(true);
 	   pd.save("E:/files/user"+session.getId().substring(0,5)+"/unlock.pdf");
 	   pd.close();
@@ -433,8 +509,8 @@ public class AppController {
 		return "download";
 	}
 	
-	@RequestMapping("sendemail")
-	public String email() throws AddressException, MessagingException, IOException {
+	@PostMapping("/sendEmail")
+	public String email(HttpServletRequest req,HttpSession session) throws AddressException, MessagingException, IOException {
 		
 		Properties p= new Properties();
 		p.put("mail.smtp.host", "smtp.gmail.com");
@@ -446,22 +522,23 @@ public class AppController {
 		p.put("mail.smtp.socketFactory.fallback", "false");
 		p.put("mail.smtp.port", "465");
 		p.put("mail.smtp.socketFactory.port", "465");
-		Session session=Session.getInstance(p, new SimpleAuthenticator("ashuman241@gmail.com","Radhe?????"));
-		Message msg=new MimeMessage(session);
-		msg.setFrom(new InternetAddress("ashuman241@gmail.com"));
-		msg.setRecipient(Message.RecipientType.TO, new InternetAddress("ashuman231@gmail.com"));
-		msg.setSubject("email sending application");
-		msg.setContent("hello i am ashu", "text/html");
-		File f = new File("E:/files/merge/ee.pdf");
+		Session session1=Session.getInstance(p, new SimpleAuthenticator("ashuTest231@gmail.com","Ashu@123"));
+		Message msg=new MimeMessage(session1);
+		msg.setFrom(new InternetAddress("ashuTest231@gmail.com"));
+		msg.setRecipient(Message.RecipientType.TO, new InternetAddress(req.getParameter("emailId")));
+		msg.setSubject("Manipulated Pdf");
+		File f = new File(req.getParameter("filepath"));
 		 Multipart multi = new MimeMultipart();
 	     DataSource fds = new FileDataSource(f);
          BodyPart fileBodyPart = new MimeBodyPart();
          fileBodyPart.setDataHandler(new DataHandler(fds));
-         fileBodyPart.setFileName("download.pdf");
+         fileBodyPart.setFileName(req.getParameter("filepath"));
 	     multi.addBodyPart(fileBodyPart);
 		msg.setContent(multi);
 		Transport.send(msg);
-		return  "index1";
+		// to delete folder of this waste files.
+		deleteFile(new File("E:/files/user"+session.getId().substring(0,5)+""));
+		return  "index";
 	}   
 	    @RequestMapping("/loginPage")
 		public String loginCall()
@@ -513,5 +590,4 @@ public class AppController {
 	    {
 	    	return "index";
 	    }
-	    
 }

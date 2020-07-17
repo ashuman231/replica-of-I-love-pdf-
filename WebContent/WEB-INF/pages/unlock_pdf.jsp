@@ -25,8 +25,9 @@
             <h2 class="tool__header__subtitle">Encrypt your PDF with a password to keep sensitive data confidential.</h2>
         </div>
         <div id="uploader" class="uploader">
+        <strong>${message}</strong><br><br>
   <form action="/webapp/unlock" method="post" enctype="multipart/form-data">
-  <input class="uploader__btn tooltip--left" type="file" name="userfile" required/><strong>${message}</strong><br><br>
+  <input class="uploader__btn tooltip--left" type="file" name="userfile" required/><br><br>
   <input class="uploader__btn tooltip--left" type="password" name="a" placeholder="Enter your password" required/>
   <br>
   <button class="uploader__btn tooltip--left"  type="submit">Submit</button>
