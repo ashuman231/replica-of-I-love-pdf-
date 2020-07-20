@@ -522,7 +522,7 @@ public class AppController {
 		p.put("mail.smtp.socketFactory.fallback", "false");
 		p.put("mail.smtp.port", "465");
 		p.put("mail.smtp.socketFactory.port", "465");
-		Session session1=Session.getInstance(p, new SimpleAuthenticator("ashuTest231@gmail.com","Ashu@123"));
+		Session session1=Session.getInstance(p, new SimpleAuthenticator("ashuTest231@gmail.com","*****"));
 		Message msg=new MimeMessage(session1);
 		msg.setFrom(new InternetAddress("ashuTest231@gmail.com"));
 		msg.setRecipient(Message.RecipientType.TO, new InternetAddress(req.getParameter("emailId")));
